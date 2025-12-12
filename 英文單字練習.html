@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>國中英文核心100單字大挑戰</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        h1 { color: #2c3e50; margin-bottom: 0.5rem; }
+        .score-board {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .question-box {
+            background-color: #3498db;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 0 #2980b9;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        button {
+            background-color: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #2c3e50;
+        }
+        button:hover {
+            background-color: #dfe6e9;
+            transform: translateY(-2px);
+        }
+        button.correct {
+            background-color: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+        }
+        button.wrong {
+            background-color: #e74c3c;
+            border-color: #c0392b;
+            color: white;
+        }
+        .feedback {
+            height: 30px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .btn-control {
+            background-color: #f1c40f;
+            color: #fff;
+            border: none;
+            width: 100%;
+            margin-top: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #f39c12;
+        }
+        .btn-control:hover { background-color: #f39c12; }
+        
+        /* 隱藏元素 */
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📚 國中英文單字挑戰</h1>
+    
+    <!-- 開始畫面 -->
+    <div id="start-screen">
+        <p>測試你對最常見100個單字的熟悉度！</p>
+        <p>每題有4個選項，請選出正確的中文意思。</p>
+        <button class="btn-control" onclick="startGame()">開始遊戲 (Start)</button>
+    </div>
+
+    <!-- 遊戲畫面 -->
+    <div id="game-screen" class="hidden">
+        <div class="score-board">
+            <span id="score">得分: 0</span>
+            <span id="progress">題數: 1/10</span>
+        </div>
+        
+        <div class="question-box" id="question-word">Apple</div>
+        
+        <div class="options-grid" id="options-area">
+            <!-- 選項會由 JS 產生 -->
+        </div>
+
+        <div class="feedback" id="feedback-msg"></div>
+        <button id="next-btn" class="btn-control hidden" onclick="nextQuestion()">下一題 (Next)</button>
+    </div>
+
+    <!-- 結束畫面 -->
+    <div id="end-screen" class="hidden">
+        <h2>遊戲結束!</h2>
+        <p>你的最終得分是：</p>
+        <div style="font-size: 3rem; color: #3498db; margin: 20px 0;" id="final-score">0</div>
+        <p id="comment">評語載入中...</p>
+        <button class="btn-control" onclick="location.reload()">再玩一次 (Play Again)</button>
+    </div>
+</div>
+
+<script>
+    // 100個單字庫
+    const vocabularyList = [
+        {en: "I", zh: "我"}, {en: "you", zh: "你"}, {en: "he", zh: "他"}, {en: "she", zh: "她"}, {en: "it", zh: "它"},
+        {en: "we", zh: "我們"}, {en: "they", zh: "他們"}, {en: "my", zh: "我的"}, {en: "teacher", zh: "老師"}, {en: "student", zh: "學生"},
+        {en: "friend", zh: "朋友"}, {en: "family", zh: "家庭"}, {en: "go", zh: "去"}, {en: "come", zh: "來"}, {en: "do", zh: "做"},
+        {en: "have", zh: "有"}, {en: "like", zh: "喜歡"}, {en: "want", zh: "想要"}, {en: "know", zh: "知道"}, {en: "think", zh: "想/認為"},
+        {en: "see", zh: "看見"}, {en: "look", zh: "注視"}, {en: "watch", zh: "觀看"}, {en: "listen", zh: "聽"}, {en: "say", zh: "說"},
+        {en: "eat", zh: "吃"}, {en: "drink", zh: "喝"}, {en: "play", zh: "玩"}, {en: "study", zh: "研讀"}, {en: "work", zh: "工作"},
+        {en: "help", zh: "幫忙"}, {en: "good", zh: "好的"}, {en: "bad", zh: "壞的"}, {en: "happy", zh: "快樂的"}, {en: "sad", zh: "傷心的"},
+        {en: "big", zh: "大的"}, {en: "small", zh: "小的"}, {en: "new", zh: "新的"}, {en: "old", zh: "舊的/老的"}, {en: "hot", zh: "熱的"},
+        {en: "cold", zh: "冷的"}, {en: "beautiful", zh: "美麗的"}, {en: "busy", zh: "忙碌的"}, {en: "school", zh: "學校"}, {en: "class", zh: "班級"},
+        {en: "book", zh: "書"}, {en: "pen", zh: "筆"}, {en: "desk", zh: "書桌"}, {en: "bag", zh: "袋子"}, {en: "homework", zh: "作業"},
+        {en: "test", zh: "考試"}, {en: "time", zh: "時間"}, {en: "today", zh: "今天"}, {en: "morning", zh: "早上"}, {en: "night", zh: "晚上"},
+        {en: "home", zh: "家"}, {en: "room", zh: "房間"}, {en: "water", zh: "水"}, {en: "food", zh: "食物"}, {en: "money", zh: "錢"},
+        {en: "in", zh: "在..裡"}, {en: "on", zh: "在..上"}, {en: "at", zh: "在..點"}, {en: "for", zh: "為了"}, {en: "with", zh: "和..一起"},
+        {en: "about", zh: "關於"}, {en: "from", zh: "來自"}, {en: "to", zh: "去/對"}, {en: "and", zh: "和"}, {en: "but", zh: "但是"},
+        {en: "because", zh: "因為"}, {en: "so", zh: "所以"}, {en: "yes", zh: "是"}, {en: "no", zh: "否/不"}, {en: "very", zh: "非常"},
+        {en: "tired", zh: "累的"}, {en: "hungry", zh: "餓的"}, {en: "people", zh: "人們"}, {en: "boy", zh: "男孩"}, {en: "girl", zh: "女孩"},
+        {en: "late", zh: "遲到"}, {en: "early", zh: "早的"}, {en: "easy", zh: "簡單的"}, {en: "hard", zh: "困難的/硬的"}, {en: "ready", zh: "準備好的"},
+        {en: "speak", zh: "說(語言)"}, {en: "talk", zh: "談話"}, {en: "use", zh: "使用"}, {en: "make", zh: "製作"}, {en: "take", zh: "拿/搭乘"},
+        {en: "week", zh: "週"}, {en: "year", zh: "年"}, {en: "month", zh: "月"}, {en: "here", zh: "這裡"}, {en: "there", zh: "那裡"},
+        {en: "really", zh: "真地"}, {en: "sure", zh: "確定的"}, {en: "please", zh: "請"}, {en: "thank", zh: "感謝"}, {en: "sorry", zh: "抱歉"}
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    const totalQuestions = 10; // 每次玩10題
+    let gameList = [];
+    let isAnswered = false;
+
+    // 洗牌演算法
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function startGame() {
+        // 從總題庫中隨機選10題
+        let shuffledAll = shuffle([...vocabularyList]);
+        gameList = shuffledAll.slice(0, totalQuestions);
+        
+        currentQuestion = 0;
+        score = 0;
+        
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        isAnswered = false;
+        document.getElementById('next-btn').classList.add('hidden');
+        document.getElementById('feedback-msg').textContent = "";
+        
+        // 更新進度
+        document.getElementById('score').textContent = `得分: ${score}`;
+        document.getElementById('progress').textContent = `題數: ${currentQuestion + 1}/${totalQuestions}`;
+        
+        let currentData = gameList[currentQuestion];
+        document.getElementById('question-word').textContent = currentData.en;
+
+        // 產生選項 (1個正確 + 3個錯誤)
+        let options = [currentData];
+        let remaining = vocabularyList.filter(item => item.en !== currentData.en);
+        let shuffledRemaining = shuffle(remaining);
+        options.push(...shuffledRemaining.slice(0, 3));
+        
+        // 打亂選項順序
+        options = shuffle(options);
+
+        // 渲染按鈕
+        const optionsArea = document.getElementById('options-area');
+        optionsArea.innerHTML = '';
+        
+        options.forEach(opt => {
+            let btn = document.createElement('button');
+            btn.textContent = opt.zh;
+            btn.onclick = () => checkAnswer(opt, currentData, btn);
+            optionsArea.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selected, correct, btnElement) {
+        if (isAnswered) return; // 防止重複點擊
+        isAnswered = true;
+
+        const allBtns = document.querySelectorAll('.options-grid button');
+
+        if (selected.en === correct.en) {
+            score += 10;
+            document.getElementById('score').textContent = `得分: ${score}`;
+            btnElement.classList.add('correct');
+            document.getElementById('feedback-msg').style.color = "#2ecc71";
+            document.getElementById('feedback-msg').textContent = "Excellent! 答對了！";
+        } else {
+            btnElement.classList.add('wrong');
+            // 標示出正確答案
+            allBtns.forEach(btn => {
+                if (btn.textContent === correct.zh) {
+                    btn.classList.add('correct');
+                }
+            });
+            document.getElementById('feedback-msg').style.color = "#e74c3c";
+            document.getElementById('feedback-msg').textContent = `Oops! 正確答案是: ${correct.zh}`;
+        }
+
+        document.getElementById('next-btn').classList.remove('hidden');
+    }
+
+    function nextQuestion() {
+        currentQuestion++;
+        if (currentQuestion < totalQuestions) {
+            loadQuestion();
+        } else {
+            endGame();
+        }
+    }
+
+    function endGame() {
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.remove('hidden');
+        document.getElementById('final-score').textContent = score;
+
+        let comment = "";
+        if (score === 100) comment = "太神了！單字王就是你！🏆";
+        else if (score >= 80) comment = "很棒喔！繼續保持！✨";
+        else if (score >= 60) comment = "及格了，再多練習一下會更好！📚";
+        else comment = "別灰心，多玩幾次就記住了！💪";
+        
+        document.getElementById('comment').textContent = comment;
+    }
+</script>
+
+</body>
+</html>
